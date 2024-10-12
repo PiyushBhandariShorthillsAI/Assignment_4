@@ -7,7 +7,7 @@ from storage.sql_storage import SQLStorage
 
 if __name__ == "__main__":
     # Example usage with a PDF file
-    file_loader = DOCXLoader('/home/shtlp_0125/Desktop/Piyush_Assignment_4/file-sample_100kB.docx')
+    file_loader = PDFLoader('/home/shtlp_0125/Desktop/Piyush_Assignment_4/sample_requirements_with_table_image.pdf')
     extractor = DataExtractor(file_loader)
 
     # File storage
