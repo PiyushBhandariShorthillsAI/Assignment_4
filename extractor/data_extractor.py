@@ -33,19 +33,22 @@ class DataExtractor:
                 page = self.document.load_page(page_num)
                 links += [link['uri'] for link in page.get_links() if 'uri' in link]
             return links
-        elif hasattr(self.document, 'hyperlinks'):  # DOCX handling
+        
+        elif hasattr(self.document, 'element'):  # DOCX handling
             links = []
-            for hyperlink in self.document.hyperlinks:
-                links.append(hyperlink.target)
+            for rel in self.document.part.rels.values():
+                if "hyperlink" in rel.reltype:
+                    links.append(rel.target_ref)
             return links
+        
         elif hasattr(self.document, 'slides'):  # PPTX handling
             links = []
             for slide in self.document.slides:
                 for shape in slide.shapes:
-                    if shape.has_text_frame:
+                    if hasattr(shape, "text_frame") and shape.has_text_frame:
                         for paragraph in shape.text_frame.paragraphs:
                             for run in paragraph.runs:
-                                if run.hyperlink:
+                                if hasattr(run, "hyperlink") and run.hyperlink.address:
                                     links.append(run.hyperlink.address)
             return links
         else:
@@ -79,7 +82,7 @@ class DataExtractor:
             tables = camelot.read_pdf(self.file_path, pages='all')  # Use stored file_path
             extracted_tables = []
             for table in tables:
-                extracted_tables.append(table.df)  # Convert to DataFrame or list format
+                extracted_tables.append(table.df.values.tolist())  # Convert to DataFrame or list format
             return extracted_tables
 
         elif hasattr(self.document, 'tables'):  # DOCX handling
@@ -95,13 +98,17 @@ class DataExtractor:
         elif hasattr(self.document, 'slides'):  # PPTX handling
             tables = []
             for slide in self.document.slides:
+                print(f"Processing slide {slide.slide_id}")
                 for shape in slide.shapes:
+                    print(f"Shape type: {shape.shape_type}")  
                     if shape.has_table:
+                        print(f"Found table in slide {slide.slide_id}")
                         table = shape.table
                         rows = []
                         for row in table.rows:
                             cells = [cell.text for cell in row.cells]
                             rows.append(cells)
+                        print(f"Extracted rows: {rows}") 
                         tables.append(rows)
             return tables
 

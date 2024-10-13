@@ -12,7 +12,12 @@ class FileStorage(Storage):
             writer = csv.writer(csvfile)
             tables = self.extractor.extract_tables()
             for table in tables:
-                writer.writerow(table)
+                for row in table:
+                    if isinstance(row, (list, tuple)):
+                        cleaned_row = [cell.strip() for cell in row if isinstance(cell, str) and cell.strip()]  # Remove empty strings
+                        writer.writerow(cleaned_row)
+                    else:
+                        print(f"Unexpected row format: {row}")  # Log unexpected row format
 
         # Save images as filenames (simulate saving)
         images = self.extractor.extract_images()
